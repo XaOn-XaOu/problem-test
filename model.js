@@ -3,12 +3,12 @@ const {ObjectId} = require('mongodb')
 
 const saveNotes = (notes) => {
     const dataJSON = JSON.stringify(notes)
-    fs.writeFileSync('notess.json', dataJSON)
+    fs.writeFileSync('notes.json', dataJSON)
 }
 
 const loadNotes = () => {
     try {
-        const dataBuffer = fs.readFileSync('notess.json')
+        const dataBuffer = fs.readFileSync('notes.json')
         const dataJSON = dataBuffer.toString()
         return JSON.parse(dataJSON)
     } catch (e) {
@@ -26,20 +26,24 @@ const addNote = (body) => {
 }
 
 const readNote = (day) => {
-    const notes = loadNotes()
-    let oneDayData
+    const notes = { ...loadNotes() }
+    let oneDayData = {}
     if (day) {
-        oneDayData = notes.filter((a) => a.body.date.includes(day))
+        for (let i in notes) {
+            if (new Date(notes[i].date).setHours(0,0,0,0) === new Date(day).setHours(0,0,0,0)) {
+                oneDayData[i] = notes[i]
+            }
+        }
     } else {
         oneDayData = notes
     }
     let expenseAmount = 0
     let incomeAmount = 0
-    for (i of oneDayData) {
-        if (i.body.amount > 0) {
-            incomeAmount += i.body.amount
+    for (i in oneDayData) {
+        if (oneDayData[i].amount > 0) {
+            incomeAmount += oneDayData[i].amount
         } else {
-            expenseAmount += -i.body.amount
+            expenseAmount += -oneDayData[i].amount
         }
     }
     return {
@@ -64,11 +68,12 @@ const updateNote = (id, body) => {
         error.key = 'Invalid key updates'
         return [error, 400]
     }
-    for (i in body) {
+    for (let i in body) {
         target[i] = body[i]
     }
     notes[id] = target
     saveNotes(notes)
+    console.log('Note updated!')
     return [target, 200]
 }
 

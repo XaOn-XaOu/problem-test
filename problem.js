@@ -13,7 +13,7 @@ app.post('/records', (req, res) => {
 })
 
 app.get('/records', (req, res) => {
-    const day = req.query.date.split('-')[2]
+    const day = req.query.date
     const result = model.readNote(day)
     res.status(200).send(result)
 })
